@@ -1,10 +1,16 @@
 const { Router } = require("express");
 const router = Router();
 const userMiddleware = require("../middleware/user");
+const { User } = require("../db");
 
 // User Routes
-router.post('/signup', (req, res) => {
-    // Implement user signup logic
+router.post('/signup', async(req, res) => {
+    // Implement admin signup logic
+    const { username, password } = req.body;
+
+    await User.create({ username, password })
+
+    res.json( { message: 'User created successfully' })
 });
 
 router.get('/courses', (req, res) => {
