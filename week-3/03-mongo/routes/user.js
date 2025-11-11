@@ -15,6 +15,9 @@ router.post('/signup', async(req, res) => {
 
 router.get('/courses', (req, res) => {
     // Implement listing all courses logic
+    Course.find().then(function(courses){
+            res.json({ courses: courses });
+        });
 });
 
 router.post('/courses/:courseId', userMiddleware, (req, res) => {
@@ -23,6 +26,16 @@ router.post('/courses/:courseId', userMiddleware, (req, res) => {
 
 router.get('/purchasedCourses', userMiddleware, (req, res) => {
     // Implement fetching purchased courses logic
+    const username=req.headers.username;
+    const password=req.headers.password;
+
+    User.findOne({ username: username, password: password }).then(function(user){
+        if(user){
+            res.json({ purchasedCourses: user.purchasedCourses || [] });
+        } else {
+            res.status(403).json( { message: 'User not found' } )
+        }
+    });
 });
 
 module.exports = router
