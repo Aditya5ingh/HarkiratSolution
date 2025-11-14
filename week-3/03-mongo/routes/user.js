@@ -21,7 +21,7 @@ router.get('/courses', (req, res) => {
         
 });
 
-router.post('/courses/:courseId', userMiddleware, (req, res) => {
+router.post('/courses/:courseId', userMiddleware, async(req, res) => {
     // Implement course purchase logic
     const courseId= req.params.courseId;
     const username=req.headers.username;
@@ -41,21 +41,25 @@ router.post('/courses/:courseId', userMiddleware, (req, res) => {
     //         res.status(403).json( { message: 'User not found' } )
     //     }
     // });
-    User.updateOne({ username: username, password: password }, { $purchasedCourses: { "$push": courseId } });
+    await User.updateOne({ username: username }, { "$push": { purchasedCourses: courseId } });
+    res.json( { message: 'Course purchased successfully' } )
 });
 
-router.get('/purchasedCourses', userMiddleware, (req, res) => {
+router.get('/purchasedCourses', userMiddleware, async(req, res) => {
     // Implement fetching purchased courses logic
     const username=req.headers.username;
     const password=req.headers.password;
 
-    User.findOne({ username: username, password: password }).then(function(user){
-        if(user){
-            res.json({ purchasedCourses: user.purchasedCourses || [] });
-        } else {
-            res.status(403).json( { message: 'User not found' } )
-        }
-    });
+    // User.findOne({ username: username, password: password }).then(function(user){
+    //     if(user){
+    //         res.json({ purchasedCourses: user.purchasedCourses || [] });
+    //     } else {
+    //         res.status(403).json( { message: 'User not found' } )
+    //     }
+    // });
+    const user = await User.findOne({ username: username });
+    const courses = await Course.find({ courseId: { $in: user.purchasedCourses } });
+    res.json({ purchasedCourses: courses });
 });
 
 module.exports = router
