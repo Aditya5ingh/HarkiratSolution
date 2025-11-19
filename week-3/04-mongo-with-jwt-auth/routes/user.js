@@ -3,7 +3,7 @@ const router = Router();
 const userMiddleware = require("../middleware/user");
 const JWT_SECRET = require("../config");
 const jwt = require("jsonwebtoken");
-const { User } = require("../db");
+const { User, Course } = require("../db");
 
 // User Routes
 router.post('/signup', (req, res) => {
@@ -28,13 +28,28 @@ router.post('/signin', (req, res) => {
     res.json({token:token});
 });
 
-router.get('/courses', (req, res) => {
+router.get('/courses', async(req, res) => {
     // Implement listing all courses logic
+   
+    const response = await Course.find({});
+    res.json({courses: response});
     
 });
 
 router.post('/courses/:courseId', userMiddleware, (req, res) => {
     // Implement course purchase logic
+
+    const username = req.username;
+    const user = User.findOne({username});
+    const courseId = req.params.courseId;
+    const course = Course.findById(courseId);
+    if(course){
+        user.purchasedCourses.push(course);
+        user.save();
+        res.json({message: 'Course purchased successfully'});
+    } else {
+        res.status(404).json({message: 'Course not found'});
+    }
 });
 
 router.get('/purchasedCourses', userMiddleware, (req, res) => {
